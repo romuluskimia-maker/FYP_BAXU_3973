@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - EduLearn</title>
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-header">
+            <h2>Quiz Feedback</h2>
+            <span class="role-badge role-student">Student</span>
+        </div>
+        
+        <div class="card">
+            <h2>How was your experience?</h2>
+            <p style="color: #666; margin-bottom: 30px;">
+                Your feedback helps us improve the learning experience for everyone.
+            </p>
+            
+            <form id="feedbackForm">
+                <div class="form-group">
+                    <label>Overall Satisfaction</label>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="satisfaction" value="5" required> ⭐⭐⭐⭐⭐ Excellent
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="satisfaction" value="4"> ⭐⭐⭐⭐ Very Good
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="satisfaction" value="3"> ⭐⭐⭐ Good
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="satisfaction" value="2"> ⭐⭐ Fair
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="satisfaction" value="1"> ⭐ Poor
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clarity">Question Clarity</label>
+                    <select id="clarity" class="form-control" required>
+                        <option value="">Select rating...</option>
+                        <option value="5">Very Clear</option>
+                        <option value="4">Clear</option>
+                        <option value="3">Somewhat Clear</option>
+                        <option value="2">Unclear</option>
+                        <option value="1">Very Unclear</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="difficulty">Difficulty Level</label>
+                    <select id="difficulty" class="form-control" required>
+                        <option value="">Select difficulty...</option>
+                        <option value="too_easy">Too Easy</option>
+                        <option value="appropriate">Just Right</option>
+                        <option value="too_hard">Too Hard</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="feedback">Additional Comments</label>
+                    <textarea id="feedback" class="form-control" placeholder="Share your thoughts about the quiz, explanations, or any suggestions for improvement..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="improvement">What could be improved?</label>
+                    <textarea id="improvement" class="form-control" placeholder="Specific areas where you'd like to see improvements..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%;">Submit Feedback</button>
+            </form>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="student-dashboard.html" class="btn btn-secondary">Skip & Return to Dashboard</a>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your feedback! It helps us improve.');
+            window.location.href = 'student-dashboard.html';
+        });
+    </script>
+</body>
+</html>

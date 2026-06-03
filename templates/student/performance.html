@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Your Performance Report </h1>
+            <p class="lead">Quiz completed on {{ session.completed_at.strftime('%B %d, %Y at %H:%M') }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-primary">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Score Summary Card -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3 border-end">
+                    <h6 class="text-muted">Total Questions</h6>
+                    <h2 class="display-4">{{ session.total_possible }}</h2>
+                </div>
+                <div class="col-md-3 border-end">
+                    <h6 class="text-muted">Correct Answers</h6>
+                    <h2 class="display-4 text-success">{{ session.total_score|int }}</h2>
+                </div>
+                <div class="col-md-3 border-end">
+                    <h6 class="text-muted">Incorrect Answers</h6>
+                    <h2 class="display-4 text-danger">{{ session.total_possible - session.total_score|int }}</h2>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-muted">Overall Score</h6>
+                    <div class="position-relative">
+                        <h2 class="display-4 {% if percentage >= 70 %}text-success{% elif percentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ percentage|round|int }}%
+                        </h2>
+                        <div class="progress mt-2" style="height: 10px;">
+                            <div class="progress-bar {% if percentage >= 70 %}bg-success{% elif percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ percentage }}%" 
+                                 aria-valuenow="{{ percentage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance Message -->
+            <div class="alert {% if percentage >= 70 %}alert-success{% elif percentage >= 50 %}alert-warning{% else %}alert-danger{% endif %} mt-4 text-center">
+                {% if percentage >= 80 %}
+                    <i class="fas fa-trophy"></i> Excellent work! You've mastered this material!
+                {% elif percentage >= 60 %}
+                    <i class="fas fa-thumbs-up"></i> Good job! Review the explanations below to strengthen your knowledge.
+                {% elif percentage >= 40 %}
+                    <i class="fas fa-book"></i> Keep practicing! Review the material and try again.
+                {% else %}
+                    <i class="fas fa-chalkboard-teacher"></i> Don't give up! Review the explanations and ask your teacher for help.
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Results -->
+    <h3 class="mt-5 mb-3">Detailed Question Analysis</h3>
+    
+    {% for result in results %}
+    <div class="card mb-3 shadow-sm {% if result.is_correct %}border-success{% else %}border-danger{% endif %}">
+        <div class="card-header {% if result.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+            <strong>Question {{ loop.index }}</strong>
+            <span class="float-end">
+                {% if result.is_correct %}
+                    <i class="fas fa-check-circle"></i> Correct (+1 point)
+                {% else %}
+                    <i class="fas fa-times-circle"></i> Incorrect (0 points)
+                {% endif %}
+            </span>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">{{ result.question_text }}</h5>
+            
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h6>Your Answer:</h6>
+                    <div class="p-2 {% if result.is_correct %}bg-success-light{% else %}bg-danger-light{% endif %} rounded">
+                        <strong>{{ result.student_answer }}.</strong> 
+                        {{ result.options[result.student_answer] }}
+                    </div>
+                </div>
+                
+                {% if not result.is_correct %}
+                <div class="col-md-6">
+                    <h6>Correct Answer:</h6>
+                    <div class="p-2 bg-success-light rounded">
+                        <strong>{{ result.correct_answer }}.</strong> 
+                        {{ result.options[result.correct_answer] }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-3">
+                <h6><i class="fas fa-lightbulb"></i> Explanation:</h6>
+                <div class="p-3 bg-light rounded">
+                    {{ result.explanation }}
+                </div>
+            </div>
+            
+            <!-- All Options Display -->
+            <div class="mt-3">
+                <small class="text-muted">All options:</small>
+                <div class="row mt-1">
+                    {% for letter, option in result.options.items() %}
+                    <div class="col-md-6">
+                        <span class="badge {% if letter == result.correct_answer %}bg-success{% elif letter == result.student_answer and not result.is_correct %}bg-danger{% else %}bg-secondary{% endif %} me-2">
+                            {{ letter }}
+                        </span>
+                        {{ option }}
+                        {% if letter == result.correct_answer %}
+                            <i class="fas fa-check-circle text-success"></i>
+                        {% elif letter == result.student_answer and not result.is_correct %}
+                            <i class="fas fa-times-circle text-danger"></i>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Action Buttons -->
+    <div class="row mt-4 mb-5">
+        <div class="col-md-6">
+            <a href="{{ url_for('take_quiz') }}" class="btn btn-primary btn-lg w-100">
+                <i class="fas fa-redo"></i> Take New Quiz
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="{{ url_for('give_feedback') }}" class="btn btn-info btn-lg w-100">
+                <i class="fas fa-comment"></i> Give Feedback to Teacher
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-success-light {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+.bg-danger-light {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+</style>
+{% endblock %}

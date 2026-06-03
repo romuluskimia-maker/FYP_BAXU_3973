@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Student Feedback Dashboard </h1>
+            <p class="lead">View what students think about the questions and learning experience.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-outline-secondary">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mt

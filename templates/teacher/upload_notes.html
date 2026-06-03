@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Upload Lecture Notes </h1>
+            <p class="lead">Upload PDF or image files. The system will automatically extract text using OCR and generate questions.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-outline-secondary">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-7">
+            <!-- Upload Card -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-cloud-upload-alt"></i> Upload Material</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Choose File</label>
+                            <input class="form-control" type="file" id="file" name="file" 
+                                   accept=".pdf,.png,.jpg,.jpeg" required>
+                            <div class="form-text">
+                                Supported formats: PDF, PNG, JPG, JPEG (Max 16MB)
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>What happens next?</strong>
+                            <ol class="mb-0 mt-2">
+                                <li>System extracts text using OCR technology</li>
+                                <li>Llama 3.2 generates multiple-choice questions with distractors</li>
+                                <li>You'll be able to review and tune the questions</li>
+                                <li>Publish approved questions for students</li>
+                            </ol>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="uploadBtn">
+                            <i class="fas fa-upload"></i> Upload & Process
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Tips Card -->
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Tips for Best Results</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Use high-quality, clear PDFs/images</li>
+                        <li>Ensure text is readable and not handwritten</li>
+                        <li>For best OCR results, use scanned documents with at least 300 DPI</li>
+                        <li>Break very long documents (100+ pages) into smaller chunks</li>
+                        <li>Review generated questions carefully before publishing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-5">
+            <!-- Recent Uploads -->
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Recent Uploads</h5>
+                </div>
+                <div class="card-body">
+                    {% if documents %}
+                        <div class="list-group">
+                            {% for doc in documents[:5] %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-file-{% if doc.filename.endswith('.pdf') %}pdf text-danger{% else %}image text-primary{% endif %}"></i>
+                                        <strong>{{ doc.filename[:30] }}{% if doc.filename|length > 30 %}...{% endif %}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ doc.uploaded_at.strftime('%Y-%m-%d %H:%M') }}
+                                            <span class="badge {% if doc.status == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ doc.status }}
+                                            </span>
+                                        </small>
+                                    </div>
+                                    {% if doc.status == 'completed' %}
+                                    <a href="{{ url_for('review_generated_questions', doc_id=doc.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        Review
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No uploads yet. Start by uploading a file!</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Stats Card -->
+            <div class="card mt-4 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">System Statistics</h6>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h3>{{ documents|length or 0 }}</h3>
+                            <small>Documents Processed</small>
+                        </div>
+                        <div class="col-6">
+                            <h3>{{ pending_questions or 0 }}</h3>
+                            <small>Questions Pending</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function() {
+    const btn = document.getElementById('uploadBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing... This may take a few minutes';
+    btn.disabled = true;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results - EduLearn</title>
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-header">
+            <h2>Quiz Results</h2>
+            <span class="role-badge role-student">Student</span>
+        </div>
+        
+        <div class="score-display">
+            <h2>Your Score</h2>
+            <div class="score-number">12/15</div>
+            <p style="font-size: 24px;">80% - Good Job!</p>
+        </div>
+        
+        <div class="card">
+            <h2>Detailed Explanations</h2>
+            
+            <!-- Question 1 -->
+            <div class="question-box">
+                <h4>Question 1: What is the primary purpose of an algorithm?</h4>
+                <p><strong>Your Answer:</strong> B ✓</p>
+                <p><strong>Correct Answer:</strong> B</p>
+                <div class="explanation">
+                    <strong>Explanation:</strong> An algorithm is indeed a step-by-step procedure for solving a problem. It's the foundation of all computer programs and provides a clear sequence of instructions to achieve a desired outcome. Options A, C, and D describe other important CS concepts (data storage, visualization, networking) but not the core definition of an algorithm.
+                </div>
+            </div>
+            
+            <!-- Question 2 -->
+            <div class="question-box">
+                <h4>Question 2: Which data structure uses LIFO (Last In First Out)?</h4>
+                <p><strong>Your Answer:</strong> A ✗</p>
+                <p><strong>Correct Answer:</strong> B</p>
+                <div class="explanation">
+                    <strong>Explanation:</strong> A Stack follows the LIFO principle where the last element added is the first one removed. Think of it like a stack of plates - you can only add or remove from the top. Arrays (A) allow random access, Queues (C) use FIFO, and Trees (D) have hierarchical structures.
+                </div>
+            </div>
+            
+            <!-- Question 3 -->
+            <div class="question-box">
+                <h4>Question 3: What does HTML stand for?</h4>
+                <p><strong>Your Answer:</strong> C ✓</p>
+                <p><strong>Correct Answer:</strong> C</p>
+                <div class="explanation">
+                    <strong>Explanation:</strong> HTML stands for HyperText Markup Language. It's the standard markup language for creating web pages. The "HyperText" refers to links that connect web pages, and "Markup Language" means it uses tags to define elements within a document.
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="student-feedback.html" class="btn">Provide Feedback</a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="student-dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduLearn - Intelligent Learning Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="card" style="text-align: center; padding: 60px 40px;">
+            <h1 style="font-size: 48px; margin-bottom: 20px;">🎓 EduLearn</h1>
+            <p style="font-size: 20px; color: #666; margin-bottom: 40px;">
+                AI-Powered Question Generation & Assessment System
+            </p>
+            
+            <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 40px;">
+                <div style="flex: 1; max-width: 300px;">
+                    <div class="card" style="background: #f8f9fa;">
+                        <h3>👨‍🎓 Student Portal</h3>
+                        <p style="color: #666; margin: 15px 0;">
+                            Access questions, track performance, receive detailed explanations
+                        </p>
+                        <a href="{{ url_for('student_login') }}" class="btn">Login as Student</a>
+                    </div>
+                </div>
+                
+                <div style="flex: 1; max-width: 300px;">
+                    <div class="card" style="background: #f8f9fa;">
+                        <h3>👩‍🏫 Teacher Portal</h3>
+                        <p style="color: #666; margin: 15px 0;">
+                            Upload notes, generate questions, review & approve assessments
+                        </p>
+                        <a href="{{ url_for('teacher_login') }}" class="btn btn-secondary">Login as Teacher</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

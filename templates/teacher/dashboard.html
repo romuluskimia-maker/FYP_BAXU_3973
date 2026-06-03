@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Teacher Dashboard </h1>
+            <p class="lead">Welcome back, {{ current_user.username }}! Manage your questions and monitor student progress.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Logout</a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Documents</h6>
+                    <h2 class="display-4">{{ documents|length }}</h2>
+                    <small>Uploaded materials</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Pending Review</h6>
+                    <h2 class="display-4">{{ pending_questions }}</h2>
+                    <small>Questions awaiting approval</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Published</h6>
+                    <h2 class="display-4">{{ approved_questions }}</h2>
+                    <small>Questions live for students</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Feedback</h6>
+                    <h2 class="display-4">{{ total_feedback }}</h2>
+                    <small>Student responses</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('upload_notes') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-upload"></i> Upload Notes
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('tune_questions') }}" class="btn btn-warning w-100">
+                                <i class="fas fa-edit"></i> Tune Questions
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <!-- FIXED: Changed from 'teacher_feedback' to 'view_student_feedback' -->
+                            <a href="{{ url_for('view_student_feedback') }}" class="btn btn-info w-100">
+                                <i class="fas fa-comments"></i> View Feedback
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-chart-line"></i> Refresh Stats
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Recent Uploads</h5>
+                </div>
+                <div class="card-body">
+                    {% if documents %}
+                        <div class="list-group">
+                            {% for doc in documents[:5] %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-file-{% if doc.filename.endswith('.pdf') %}pdf text-danger{% else %}image text-primary{% endif %}"></i>
+                                        <strong>{{ doc.filename[:40] }}{% if doc.filename|length > 40 %}...{% endif %}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            Uploaded: {{ doc.uploaded_at.strftime('%Y-%m-%d %H:%M') }}
+                                            <span class="badge {% if doc.status == 'completed' %}bg-success{% elif doc.status == 'processing' %}bg-warning{% else %}bg-secondary{% endif %} ms-2">
+                                                {{ doc.status }}
+                                            </span>
+                                        </small>
+                                    </div>
+                                    {% if doc.status == 'completed' %}
+                                    <a href="{{ url_for('review_generated_questions', doc_id=doc.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        Review Questions
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if documents|length > 5 %}
+                            <div class="text-center mt-3">
+                                <small class="text-muted">+{{ documents|length - 5 }} more documents</small>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No documents uploaded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Questions Summary -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Pending Questions</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_questions > 0 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            You have <strong>{{ pending_questions }}</strong> question(s) waiting for your review.
+                        </div>
+                        <a href="{{ url_for('tune_questions') }}" class="btn btn-warning w-100">
+                            Review Pending Questions →
+                        </a>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            All questions have been reviewed! Great job!
+                        </div>
+                        <a href="{{ url_for('upload_notes') }}" class="btn btn-primary w-100">
+                            Upload New Material to Generate Questions
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card bg-light shadow-sm">
+                <div class="card-body">
+                    <h6><i class="fas fa-lightbulb"></i> Quick Tips</h6>
+                    <ul class="mb-0">
+                        <li>Upload PDF or image files - the system will automatically extract text using OCR</li>
+                        <li>Review and tune generated questions before publishing to ensure quality</li>
+                        <li>Check student feedback regularly to improve question quality</li>
+                        <li>Published questions become immediately available to all students</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

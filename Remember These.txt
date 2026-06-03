@@ -1,0 +1,1 @@
+1. For your project, before running the app.py, always start Ollama first so that it can acess the llama 3.2 model

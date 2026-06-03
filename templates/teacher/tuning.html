@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Question Tuning Workshop </h1>
+            <p class="lead">Review, edit, and approve questions before publishing to students.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-outline-secondary">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs for different question states -->
+    <ul class="nav nav-tabs mt-4" id="questionTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                Pending Review <span class="badge bg-warning">{{ pending_questions|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                All Questions <span class="badge bg-secondary">{{ all_questions|length }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <form method="POST" id="tuningForm">
+        <div class="tab-content mt-3">
+            <!-- Pending Questions Tab -->
+            <div class="tab-pane fade show active" id="pending" role="tabpanel">
+                {% if pending_questions %}
+                    {% for question in pending_questions %}
+                    <div class="card mb-4 shadow-sm" id="question-{{ question.id }}">
+                        <div class="card-header bg-warning">
+                            <strong>Question ID: {{ question.id[:8] }}...</strong>
+                            <span class="badge bg-danger float-end">Pending Review</span>
+                        </div>
+                        <div class="card-body">
+                            <!-- Question Text -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Question Text:</label>
+                                <textarea name="question_text_{{ question.id }}" class="form-control" rows="2">{{ question.question_text }}</textarea>
+                            </div>
+                            
+                            <!-- Options -->
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label">A) Option A:</label>
+                                    <input type="text" name="option_a_{{ question.id }}" class="form-control" value="{{ question.option_a }}">
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label">B) Option B:</label>
+                                    <input type="text" name="option_b_{{ question.id }}" class="form-control" value="{{ question.option_b }}">
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label">C) Option C:</label>
+                                    <input type="text" name="option_c_{{ question.id }}" class="form-control" value="{{ question.option_c }}">
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label">D) Option D:</label>
+                                    <input type="text" name="option_d_{{ question.id }}" class="form-control" value="{{ question.option_d }}">
+                                </div>
+                            </div>
+                            
+                            <!-- Correct Answer & Explanation -->
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">Correct Answer:</label>
+                                    <select name="correct_answer_{{ question.id }}" class="form-select">
+                                        <option value="A" {% if question.correct_answer == 'A' %}selected{% endif %}>A</option>
+                                        <option value="B" {% if question.correct_answer == 'B' %}selected{% endif %}>B</option>
+                                        <option value="C" {% if question.correct_answer == 'C' %}selected{% endif %}>C</option>
+                                        <option value="D" {% if question.correct_answer == 'D' %}selected{% endif %}>D</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-9">
+                                    <label class="form-label">Explanation:</label>
+                                    <textarea name="explanation_{{ question.id }}" class="form-control" rows="2">{{ question.explanation }}</textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Teacher Notes -->
+                            <div class="mt-3">
+                                <label class="form-label">Teacher's Notes/Feedback:</label>
+                                <textarea name="teacher_notes_{{ question.id }}" class="form-control" rows="2" 
+                                          placeholder="Add notes about this question (e.g., needs improvement, good as is, etc.)">{{ question.teacher_notes or '' }}</textarea>
+                            </div>
+                            
+                            <!-- Status & Actions -->
+                            <div class="mt-3">
+                                <label class="form-label">Status:</label>
+                                <select name="status_{{ question.id }}" class="form-select" onchange="updateStatusColor('{{ question.id }}', this.value)">
+                                    <option value="pending" {% if question.teacher_feedback_status == 'pending' %}selected{% endif %}>Pending Review</option>
+                                    <option value="approved" {% if question.teacher_feedback_status == 'approved' %}selected{% endif %}>Approve & Publish</option>
+                                    <option value="rejected" {% if question.teacher_feedback_status == 'rejected' %}selected{% endif %}>Reject (Needs Regeneration)</option>
+                                    <option value="modified" {% if question.teacher_feedback_status == 'modified' %}selected{% endif %}>Modified (Changes Made)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Quick Actions -->
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="approveQuestion('{{ question.id }}')">
+                                    <i class="fas fa-check"></i> Quick Approve
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="rejectQuestion('{{ question.id }}')">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="regenerateDistractors('{{ question.id }}')">
+                                    <i class="fas fa-sync"></i> Regenerate Distractors
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> No pending questions! All questions have been reviewed.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- All Questions Tab -->
+            <div class="tab-pane fade" id="all" role="tabpanel">
+                {% if all_questions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Question</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for question in all_questions %}
+                                <tr>
+                                    <td>{{ question.question_text[:100] }}...</td>
+                                    <td>
+                                        <span class="badge {% if question.is_published %}bg-success{% else %}bg-warning{% endif %}">
+                                            {% if question.is_published %}Published{% else %}Draft{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ question.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" onclick="editQuestion('{{ question.id }}')">Edit</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteQuestion('{{ question.id }}')">Delete</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No questions found.</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="row mt-4 mb-5">
+            <div class="col-md-6">
+                <button type="submit" name="action" value="save_changes" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-save"></i> Save All Changes
+                </button>
+            </div>
+            <div class="col-md-6">
+                <button type="submit" name="action" value="approve_all" class="btn btn-success btn-lg w-100">
+                    <i class="fas fa-check-double"></i> Approve All & Publish
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateStatusColor(questionId, status) {
+    const card = document.getElementById(`question-${questionId}`);
+    const header = card.querySelector('.card-header');
+    
+    if (status === 'approved') {
+        header.classList.remove('bg-warning');
+        header.classList.add('bg-success');
+        header.querySelector('.badge').innerHTML = 'Approved';
+    } else if (status === 'rejected') {
+        header.classList.remove('bg-warning');
+        header.classList.add('bg-danger');
+        header.querySelector('.badge').innerHTML = 'Rejected';
+    }
+}
+
+function approveQuestion(questionId) {
+    const select = document.querySelector(`select[name="status_${questionId}"]`);
+    select.value = 'approved';
+    updateStatusColor(questionId, 'approved');
+    alert('Question approved! It will be published when you save changes.');
+}
+
+function rejectQuestion(questionId) {
+    const select = document.querySelector(`select[name="status_${questionId}"]`);
+    select.value = 'rejected';
+    updateStatusColor(questionId, 'rejected');
+    alert('Question rejected. Please add notes explaining why.');
+}
+
+function regenerateDistractors(questionId) {
+    if (confirm('Regenerate distractors for this question? This will modify the incorrect options.')) {
+        // This would call an API endpoint to regenerate distractors
+        alert('Feature: Send API request to regenerate distractors');
+    }
+}
+
+function editQuestion(questionId) {
+    // Scroll to the question in pending tab and highlight it
+    document.querySelector('#pending-tab').click();
+    const questionElement = document.getElementById(`question-${questionId}`);
+    if (questionElement) {
+        questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        questionElement.style.border = '3px solid #ffc107';
+        setTimeout(() => {
+            questionElement.style.border = '';
+        }, 3000);
+    }
+}
+
+function deleteQuestion(questionId) {
+    if (confirm('Are you sure you want to delete this question? This action cannot be undone.')) {
+        fetch(`/api/questions/${questionId}`, {
+            method: 'DELETE'
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

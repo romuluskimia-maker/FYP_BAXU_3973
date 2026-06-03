@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - EduLearn</title>
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-header">
+            <h2>Dashboard</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="role-badge role-{{ session.get('role', 'guest') }}">
+                    {{ session.get('name', 'Guest') }}
+                </span>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Logout</a>
+            </div>
+        </div>
+        
+        <div class="alert alert-info">
+            📚 You have 3 new question sets ready to attempt!
+        </div>
+        
+        <div class="card">
+            <h2>Available Question Sets</h2>
+            
+            <div class="question-box">
+                <h3>Introduction to Computer Science</h3>
+                <p style="color: #666; margin: 10px 0;">Created by: Prof. Smith | Date: May 2, 2026</p>
+                <p><strong>Questions:</strong> 15 | <strong>Time Limit:</strong> 30 minutes</p>
+                <button class="btn" onclick="startQuiz('cs101')" style="margin-top: 15px;">Start Quiz</button>
+            </div>
+            
+            <div class="question-box">
+                <h3>Data Structures Fundamentals</h3>
+                <p style="color: #666; margin: 10px 0;">Created by: Dr. Johnson | Date: April 28, 2026</p>
+                <p><strong>Questions:</strong> 20 | <strong>Time Limit:</strong> 45 minutes</p>
+                <button class="btn" onclick="startQuiz('ds201')" style="margin-top: 15px;">Start Quiz</button>
+            </div>
+            
+            <div class="question-box">
+                <h3>Web Development Basics</h3>
+                <p style="color: #666; margin: 10px 0;">Created by: Prof. Williams | Date: April 25, 2026</p>
+                <p><strong>Questions:</strong> 12 | <strong>Time Limit:</strong> 25 minutes</p>
+                <button class="btn" onclick="startQuiz('web101')" style="margin-top: 15px;">Start Quiz</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Your Recent Performance</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 12px; text-align: left;">Quiz</th>
+                    <th style="padding: 12px; text-align: left;">Date</th>
+                    <th style="padding: 12px; text-align: left;">Score</th>
+                    <th style="padding: 12px; text-align: left;">Status</th>
+                </tr>
+                <tr>
+                    <td style="padding: 12px;">Algorithms Intro</td>
+                    <td style="padding: 12px;">April 30, 2026</td>
+                    <td style="padding: 12px;"><strong>85%</strong></td>
+                    <td style="padding: 12px;"><span class="status-badge status-approved">Completed</span></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px;">Database Concepts</td>
+                    <td style="padding: 12px;">April 27, 2026</td>
+                    <td style="padding: 12px;"><strong>92%</strong></td>
+                    <td style="padding: 12px;"><span class="status-badge status-approved">Completed</span></td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="index.html" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+    
+    <script>
+        function startQuiz(quizId) {
+            // Store quiz ID for next page
+            sessionStorage.setItem('currentQuiz', quizId);
+            window.location.href = 'student-answer.html';
+        }
+    </script>
+</body>
+</html>

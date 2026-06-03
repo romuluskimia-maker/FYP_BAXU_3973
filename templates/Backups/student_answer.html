@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Answer Questions - EduLearn</title>
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-header">
+            <h2>Question Set: Introduction to Computer Science</h2>
+            <span class="role-badge role-student">Student</span>
+        </div>
+        
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <span><strong>Question 1 of 15</strong></span>
+                <span>⏱️ Time Remaining: 28:45</span>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 7%;"></div>
+            </div>
+            
+            <div class="question-box">
+                <h3>What is the primary purpose of an algorithm?</h3>
+                <p style="margin: 15px 0; line-height: 1.6;">An algorithm is a fundamental concept in computer science. Select the best answer below:</p>
+                
+                <div class="option" onclick="selectOption(this)" data-value="A">
+                    <strong>A.</strong> To store large amounts of data efficiently
+                </div>
+                
+                <div class="option" onclick="selectOption(this)" data-value="B">
+                    <strong>B.</strong> To provide a step-by-step procedure for solving a problem
+                </div>
+                
+                <div class="option" onclick="selectOption(this)" data-value="C">
+                    <strong>C.</strong> To create visual representations of data
+                </div>
+                
+                <div class="option" onclick="selectOption(this)" data-value="D">
+                    <strong>D.</strong> To manage network connections
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="previousQuestion()">Previous</button>
+                <button class="btn" onclick="nextQuestion()">Next Question</button>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn btn-success" onclick="submitQuiz()">Submit All Answers</button>
+        </div>
+    </div>
+    
+    <script>
+        let selectedOptions = {};
+        let currentQuestion = 1;
+        const totalQuestions = 15;
+        
+        function selectOption(element) {
+            // Remove selection from siblings
+            const parent = element.parentElement;
+            const options = parent.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selection to clicked
+            element.classList.add('selected');
+            selectedOptions[currentQuestion] = element.dataset.value;
+        }
+        
+        function nextQuestion() {
+            if (currentQuestion < totalQuestions) {
+                currentQuestion++;
+                // In production, load next question from server
+                alert(`Loading question ${currentQuestion}...`);
+            }
+        }
+        
+        function previousQuestion() {
+            if (currentQuestion > 1) {
+                currentQuestion--;
+                // In production, load previous question from server
+                alert(`Loading question ${currentQuestion}...`);
+            }
+        }
+        
+        function submitQuiz() {
+            // Store answers for results page
+            sessionStorage.setItem('answers', JSON.stringify(selectedOptions));
+            window.location.href = 'student-results.html';
+        }
+    </script>
+</body>
+</html>

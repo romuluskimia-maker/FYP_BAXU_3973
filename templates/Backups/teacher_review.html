@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Questions - EduLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <style>
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .question-number {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .question-text {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .options-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .option-item {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        .correct-option {
+            color: #48bb78;
+            font-weight: bold;
+        }
+        .explanation {
+            background: #e6f3ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+        .btn-edit {
+            background: #ed8936;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-approve {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .action-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .badge-pending {
+            background: #ed8936;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .badge-approved {
+            background: #48bb78;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-header">
+            <h2>📋 Review Generated Questions</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="role-badge role-teacher">
+                    👨‍🏫 {{ session.get('name', 'Teacher') }}
+                </span>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Logout</a>
+            </div>
+        </div>
+        
+        <div class="alert alert-info">
+            <strong>Course:</strong> {{ session.get('course_name', 'Unknown') }} | 
+            <strong>Questions Generated:</strong> {{ questions|length }}
+        </div>
+        
+        {% if questions %}
+            {% for q in questions %}
+            <div class="question-card" id="question-{{ loop.index0 }}">
+                <div class="question-header">
+                    <span class="question-number">Question {{ loop.index }}</span>
+                    <span class="badge-pending">Pending Review</span>
+                </div>
+                
+                <div class="question-text">
+                    <strong>{{ q.question }}</strong>
+                </div>
+                
+                <div class="options-list">
+                    {% for opt in q.options %}
+                    <div class="option-item {% if loop.index0 == q.correct_index %}correct-option{% endif %}">
+                        {{ loop.index0|string + 1 }}. {{ opt }}
+                        {% if loop.index0 == q.correct_index %}
+                            ✓ (Correct Answer)
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="explanation">
+                    <strong>📖 Explanation:</strong> {{ q.explanation }}
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <button class="btn-edit" onclick="editQuestion({{ loop.index0 }})">
+                        ✏️ Edit & Tune
+                    </button>
+                    <button class="btn-approve" onclick="approveQuestion({{ loop.index0 }})">
+                        ✅ Approve
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="action-buttons">
+                <button class="btn" onclick="approveAll()" style="background: #48bb78;">
+                    ✅ Approve All Questions
+                </button>
+                <button class="btn" onclick="saveAndContinue()" style="background: #667eea;">
+                    💾 Save & Continue to Publish
+                </button>
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                No questions generated yet. Please upload notes first.
+            </div>
+            <a href="{{ url_for('teacher_upload') }}" class="btn">← Back to Upload</a>
+        {% endif %}
+    </div>
+    
+    <script>
+        function editQuestion(index) {
+            // Navigate to tuning page for this specific question
+            window.location.href = "{{ url_for('teacher_tune', index=0) }}".replace('0', index);
+        }
+        
+        function approveQuestion(index) {
+            const card = document.getElementById(`question-${index}`);
+            const badge = card.querySelector('.badge-pending');
+            badge.className = 'badge-approved';
+            badge.textContent = 'Approved';
+            
+            // You can also send approval to backend via AJAX
+            fetch(`/teacher/approve/${index}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('Question approved');
+                    }
+                });
+        }
+        
+        function approveAll() {
+            if (confirm('Approve all questions?')) {
+                // Mark all as approved
+                document.querySelectorAll('.badge-pending').forEach(badge => {
+                    badge.className = 'badge-approved';
+                    badge.textContent = 'Approved';
+                });
+                alert('All questions approved!');
+            }
+        }
+        
+        function saveAndContinue() {
+            fetch('/teacher/save', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Questions saved successfully!');
+                        window.location.href = "{{ url_for('teacher_dashboard') }}";
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Notes - EduLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <style>
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #5a67d8;
+        }
+        
+        .upload-area.drag-over {
+            background: #e6e9ff;
+            border-color: #4c51bf;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-header">
+            <h2>📚 Upload Lecture Notes</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="role-badge role-{{ session.get('role', 'guest') }}">
+                    👨‍🏫 {{ session.get('name', 'Teacher') }}
+                </span>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">🚪 Logout</a>
+            </div>
+        </div>
+        
+        <div class="alert alert-info">
+            💡 <strong>How it works:</strong> Upload your lecture notes (PDF, DOCX, or TXT) and our AI powered by Ollama will generate multiple-choice questions automatically. OCR is enabled for scanned documents!
+        </div>
+        
+        <div class="card">
+            <h2>📄 Upload Document</h2>
+            
+            <form id="uploadForm" action="{{ url_for('teacher_upload') }}" method="post" enctype="multipart/form-data">
+                <div class="upload-area" id="uploadArea">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📄</div>
+                    <h3>Drag & Drop Your Lecture Notes Here</h3>
+                    <p style="color: #666; margin: 15px 0;">or click to browse files</p>
+                    <p style="color: #999; font-size: 14px;">✅ Supported formats: PDF, DOCX, TXT (Max 10MB)</p>
+                    <p style="color: #999; font-size: 14px;">🔍 OCR enabled for scanned PDFs and images</p>
+                    <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.txt" style="display: none;" required>
+                </div>
+                
+                <div id="fileInfo" style="display: none; margin-top: 20px;">
+                    <div class="alert alert-success">
+                        <strong>✓ File Selected:</strong> <span id="fileName"></span>
+                        <button type="button" id="removeFile" style="float: right; background: none; border: none; cursor: pointer;">✖</button>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="course">📖 Course Name</label>
+                    <input type="text" id="course" name="course" class="form-control" placeholder="e.g., Introduction to Computer Science" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="topic">📚 Topic/Chapter</label>
+                    <input type="text" id="topic" name="topic" class="form-control" placeholder="e.g., Data Structures">
+                </div>
+                
+                <div class="form-group">
+                    <label for="question_count">❓ Number of Questions to Generate</label>
+                    <select id="question_count" name="question_count" class="form-control">
+                        <option value="5">5 Questions</option>
+                        <option value="10" selected>10 Questions</option>
+                        <option value="15">15 Questions</option>
+                        <option value="20">20 Questions</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="difficulty">🎯 Difficulty Level</label>
+                    <select id="difficulty" name="difficulty" class="form-control">
+                        <option value="easy">Easy (Basic recall)</option>
+                        <option value="medium" selected>Medium (Understanding & application)</option>
+                        <option value="hard">Hard (Analysis & evaluation)</option>
+                    </select>
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="loading">
+                    <div class="spinner"></div>
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p style="margin-top: 15px; color: #667eea;">🔄 Processing your document with AI... This may take a moment.</p>
+                    <p style="font-size: 14px; color: #666;">📝 Extracting text → 🤖 Generating questions → ✨ Formatting output</p>
+                </div>
+                
+                <button type="submit" id="submitBtn" class="btn" style="width: 100%; margin-top: 20px;" disabled>
+                    🚀 Generate Questions
+                </button>
+            </form>
+        </div>
+        
+        <div class="card" style="margin-top: 20px; background: #f8f9ff;">
+            <h3>📌 Tips for Best Results:</h3>
+            <ul style="margin-top: 10px; line-height: 1.8;">
+                <li>✅ Use clear, well-structured lecture notes</li>
+                <li>✅ Include bullet points and headings for better AI understanding</li>
+                <li>✅ For scanned documents, ensure text is readable (OCR works best with clear scans)</li>
+                <li>✅ Generate 5-10 questions for optimal quality</li>
+                <li>✅ You can review and edit questions before saving</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const removeFileBtn = document.getElementById('removeFile');
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const progressFill = document.getElementById('progressFill');
+        const progressBar = document.getElementById('progressBar');
+        
+        let selectedFile = null;
+        
+        // Click to upload
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Handle file selection
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                selectedFile = e.target.files[0];
+                updateFileDisplay(selectedFile);
+            }
+        });
+        
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+        
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                selectedFile = e.dataTransfer.files[0];
+                fileInput.files = e.dataTransfer.files;
+                updateFileDisplay(selectedFile);
+            }
+        });
+        
+        // Update display after file selection
+        function updateFileDisplay(file) {
+            fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            fileInfo.style.display = 'block';
+            uploadArea.style.display = 'none';
+            submitBtn.disabled = false;
+            
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File too large! Maximum size is 10MB.');
+                resetFileSelection();
+            }
+            
+            // Validate file type
+            const validTypes = ['.pdf', '.docx', '.txt'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            if (!validTypes.includes(fileExtension)) {
+                alert('Invalid file type! Please upload PDF, DOCX, or TXT files.');
+                resetFileSelection();
+            }
+        }
+        
+        // Remove file
+        removeFileBtn.addEventListener('click', () => {
+            resetFileSelection();
+        });
+        
+        function resetFileSelection() {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.style.display = 'none';
+            uploadArea.style.display = 'block';
+            submitBtn.disabled = true;
+        }
+        
+        // Simulate progress for better UX
+        function simulateProgress() {
+            progressBar.style.display = 'block';
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 90) {
+                    progress = 90;
+                    clearInterval(interval);
+                }
+                progressFill.style.width = progress + '%';
+            }, 500);
+            return interval;
+        }
+        
+        // Improved form submission with better feedback
+        uploadForm.addEventListener('submit', async (e) => {
+            if (!selectedFile) {
+                e.preventDefault();
+                alert('Please select a file first!');
+                return;
+            }
+            
+            e.preventDefault(); // Prevent default submission to handle manually
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Processing...';
+            
+            // Create FormData object
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('course', document.getElementById('course').value);
+            formData.append('topic', document.getElementById('topic').value);
+            formData.append('question_count', document.getElementById('question_count').value);
+            formData.append('difficulty', document.getElementById('difficulty').value);
+            
+            // Show progress as indeterminate (since we can't know actual progress)
+            progressBar.style.display = 'block';
+            progressFill.style.width = '30%';
+            document.querySelector('#loadingIndicator p').innerHTML = '📤 Uploading file...';
+            
+            try {
+                // Send the request
+                const response = await fetch('/teacher/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // Update progress based on response
+                if (response.redirected) {
+                    progressFill.style.width = '100%';
+                    document.querySelector('#loadingIndicator p').innerHTML = '✅ Processing complete! Redirecting...';
+                    
+                    // Small delay to show 100% before redirect
+                    setTimeout(() => {
+                        window.location.href = response.url;
+                    }, 500);
+                } else if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                progressFill.style.width = '0%';
+                loadingIndicator.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Generate Questions';
+                alert('Error processing your request. Check if Ollama is running.\n\n' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

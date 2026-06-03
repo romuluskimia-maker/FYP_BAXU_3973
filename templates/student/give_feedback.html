@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Share Your Feedback </h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Your feedback helps teachers improve the learning experience!</p>
+                    
+                    <form method="POST" action="{{ url_for('give_feedback') }}">
+                        <!-- Rating -->
+                        <div class="mb-4">
+                            <label class="form-label h5">Overall Rating</label>
+                            <div class="rating-stars">
+                                <div class="btn-group" role="group">
+                                    {% for i in range(1, 6) %}
+                                    <input type="radio" class="btn-check" name="rating" id="rating{{ i }}" value="{{ i }}" autocomplete="off" {% if i == 4 %}checked{% endif %}>
+                                    <label class="btn btn-outline-warning" for="rating{{ i }}">
+                                        <i class="fas fa-star"></i> {{ i }}
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-2">1 = Poor, 5 = Excellent</small>
+                        </div>
+                        
+                        <!-- Question Quality -->
+                        <div class="mb-4">
+                            <label class="form-label h5">Question Quality</label>
+                            <div class="btn-group" role="group">
+                                {% for i in range(1, 6) %}
+                                <input type="radio" class="btn-check" name="question_quality" id="quality{{ i }}" value="{{ i }}" autocomplete="off" {% if i == 4 %}checked{% endif %}>
+                                <label class="btn btn-outline-info" for="quality{{ i }}">
+                                    <i class="fas fa-question-circle"></i> {{ i }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted d-block mt-2">How well were the questions designed?</small>
+                        </div>
+                        
+                        <!-- Difficulty Rating -->
+                        <div class="mb-4">
+                            <label class="form-label h5">Difficulty Level</label>
+                            <div class="btn-group" role="group">
+                                {% for i in range(1, 6) %}
+                                <input type="radio" class="btn-check" name="difficulty_rating" id="difficulty{{ i }}" value="{{ i }}" autocomplete="off" {% if i == 3 %}checked{% endif %}>
+                                <label class="btn btn-outline-danger" for="difficulty{{ i }}">
+                                    {% if i == 1 %}Very Easy
+                                    {% elif i == 2 %}Easy
+                                    {% elif i == 3 %}Moderate
+                                    {% elif i == 4 %}Difficult
+                                    {% else %}Very Difficult{% endif %}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Comment -->
+                        <div class="mb-4">
+                            <label class="form-label h5">Your Comments</label>
+                            <textarea class="form-control" name="comment" rows="5" 
+                                      placeholder="What did you like? What could be improved? Any suggestions for future questions?..."></textarea>
+                            <small class="text-muted">Your honest feedback helps create better learning materials.</small>
+                        </div>
+                        
+                        <!-- Quick Suggestions -->
+                        <div class="mb-4">
+                            <label class="form-label">Quick Suggestions (Optional)</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="suggestion1" 
+                                       onclick="document.getElementById('comment').value += 'More practice questions would be helpful. '">
+                                <label class="form-check-label" for="suggestion1">
+                                    More practice questions
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="suggestion2"
+                                       onclick="document.getElementById('comment').value += 'The explanations were very clear and helpful. '">
+                                <label class="form-check-label" for="suggestion2">
+                                    Explanations were helpful
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="suggestion3"
+                                       onclick="document.getElementById('comment').value += 'Some questions were too easy/tricky. '">
+                                <label class="form-check-label" for="suggestion3">
+                                    Adjust question difficulty
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="suggestion4"
+                                       onclick="document.getElementById('comment').value += 'Adding time limits would make it more challenging. '">
+                                <label class="form-check-label" for="suggestion4">
+                                    Add time limits
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane"></i> Submit Feedback
+                            </button>
+                            <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary">
+                                Maybe Later
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Thank You Note -->
+            <div class="alert alert-info mt-4">
+                <i class="fas fa-heart text-danger"></i>
+                <strong>Your voice matters!</strong> Every feedback helps teachers create better quizzes for everyone.
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-check:checked + .btn-outline-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+.btn-check:checked + .btn-outline-info {
+    background-color: #0dcaf0;
+    color: #000;
+}
+.btn-check:checked + .btn-outline-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+</style>
+{% endblock %}

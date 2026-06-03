@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Login - EduLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="card" style="max-width: 500px; margin: 50px auto;">
+            <h1 style="text-align: center;">👩‍🏫 Teacher Login</h1>
+            
+            {% if error %}
+            <div class="alert alert-warning">
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <form action="{{ url_for('teacher_login') }}" method="post">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="teacher@school.edu" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <select id="department" name="department" class="form-control">
+                        <option value="">Select Department...</option>
+                        <option value="cs">Computer Science</option>
+                        <option value="math">Mathematics</option>
+                        <option value="science">Science</option>
+                        <option value="english">English</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%;">Login as Teacher</button>
+            </form>
+            
+            <p style="text-align: center; margin-top: 20px; color: #666;">
+                Not a teacher? <a href="{{ url_for('student_login') }}" style="color: #667eea;">Login as Student</a>
+            </p>
+            <p style="text-align: center; color: #666;">
+                <a href="{{ url_for('index') }}" style="color: #667eea;">← Back to Home</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

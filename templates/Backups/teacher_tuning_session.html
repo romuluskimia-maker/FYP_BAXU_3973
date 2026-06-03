@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tune Question - EduLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <style>
+        .preview-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .field-group {
+            margin-bottom: 20px;
+        }
+        .field-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .field-group input, .field-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .options-editor {
+            margin: 15px 0;
+        }
+        .option-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .option-row input {
+            flex: 1;
+        }
+        .correct-badge {
+            background: #48bb78;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-header">
+            <h2>✏️ Tune Question #{{ index + 1 }}</h2>
+            <a href="{{ url_for('teacher_review') }}" class="btn btn-secondary">← Back to Review</a>
+        </div>
+        
+        <div class="card">
+            <form method="POST">
+                <div class="field-group">
+                    <label>Question Text</label>
+                    <input type="text" name="question" value="{{ question.question }}" required>
+                </div>
+                
+                <div class="field-group">
+                    <label>Options (4 options required)</label>
+                    <div class="options-editor">
+                        {% for opt in question.options %}
+                        <div class="option-row">
+                            <input type="text" 
+                                   name="option_{{ loop.index0 }}" 
+                                   value="{{ opt }}"
+                                   placeholder="Option {{ loop.index0 + 1 }}"
+                                   required>
+                            {% if loop.index0 == question.correct_index %}
+                                <span class="correct-badge">✓ Correct</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="field-group">
+                    <label>Correct Option Index (0-3)</label>
+                    <select name="correct_index" class="form-control">
+                        {% for i in range(4) %}
+                        <option value="{{ i }}" {% if i == question.correct_index %}selected{% endif %}>
+                            Option {{ i + 1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="field-group">
+                    <label>Explanation</label>
+                    <textarea name="explanation" rows="3" required>{{ question.explanation }}</textarea>
+                </div>
+                
+                <div class="field-group">
+                    <label>Feedback/Context (Optional)</label>
+                    <textarea name="context" rows="2" placeholder="Any additional context or specific instructions for regeneration..."></textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="submit" name="action" value="save" class="btn" style="background: #48bb78;">
+                        💾 Save Changes
+                    </button>
+                    <button type="submit" name="action" value="regenerate" class="btn" style="background: #ed8936;">
+                        🔄 Regenerate with AI
+                    </button>
+                    <button type="button" onclick="location.href='{{ url_for('teacher_review') }}'" class="btn btn-secondary">
+                        ❌ Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="preview-box">
+            <h3>Preview</h3>
+            <p><strong>Question Preview:</strong></p>
+            <div id="previewText"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Live preview
+        const questionInput = document.querySelector('input[name="question"]');
+        const previewDiv = document.getElementById('previewText');
+        
+        function updatePreview() {
+            previewDiv.innerHTML = questionInput.value || 'Question will appear here...';
+        }
+        
+        questionInput.addEventListener('input', updatePreview);
+        updatePreview();
+    </script>
+</body>
+</html>

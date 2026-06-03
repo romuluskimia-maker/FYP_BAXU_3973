@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EduLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <style>
+        .login-container {
+            max-width: 450px;
+            margin: 50px auto;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .login-body {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+        }
+        
+        .demo-credentials {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 25px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-danger {
+            background-color: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .role-student {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .role-teacher {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <h1 style="margin: 0; font-size: 28px;">
+                        {% if role == 'student' %}
+                            👨‍🎓 Student Login
+                        {% elif role == 'teacher' %}
+                            👩‍🏫 Teacher Login
+                        {% else %}
+                            Welcome Back!
+                        {% endif %}
+                    </h1>
+                    <p style="margin: 10px 0 0; opacity: 0.9;">
+                        {% if role == 'student' %}
+                            Access your quizzes and track your progress
+                        {% elif role == 'teacher' %}
+                            Manage questions and review student performance
+                        {% else %}
+                            Login to continue to your dashboard
+                        {% endif %}
+                    </p>
+                    {% if role %}
+                        <div class="role-badge {% if role == 'student' %}role-student{% else %}role-teacher{% endif %}">
+                            {{ role|title }} Portal
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="login-body">
+                    <!-- Flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" action="{{ url_for('login') }}">
+                        {% if role %}
+                            <input type="hidden" name="role" value="{{ role }}">
+                        {% endif %}
+                        
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" 
+                                   class="form-control" 
+                                   placeholder="Enter your username"
+                                   required autofocus>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" 
+                                   class="form-control" 
+                                   placeholder="Enter your password"
+                                   required>
+                        </div>
+                        
+                        <button type="submit" class="btn-login">
+                            Login →
+                        </button>
+                    </form>
+                    
+                    <div class="demo-credentials">
+                        <strong>📝 Demo Credentials</strong><br>
+                        {% if role == 'student' %}
+                            Username: <code>student</code> | Password: <code>student123</code>
+                        {% elif role == 'teacher' %}
+                            Username: <code>teacher</code> | Password: <code>teacher123</code>
+                        {% else %}
+                            Student: student / student123<br>
+                            Teacher: teacher / teacher123
+                        {% endif %}
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <a href="{{ url_for('index') }}" class="back-link">
+                            ← Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

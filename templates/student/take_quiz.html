@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Answer Questions</h2>
+    <div id="quiz-container">
+        <div id="questions-area">
+            {% for question in questions %}
+            <div class="card mb-3" id="q-{{ question.id }}">
+                <div class="card-body">
+                    <h5>Question {{ loop.index }}: {{ question.question_text }}</h5>
+                    
+                    <div class="options mt-3">
+                        {% for opt in ['A', 'B', 'C', 'D'] %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" 
+                                   name="q{{ question.id }}" 
+                                   value="{{ opt }}"
+                                   data-qid="{{ question.id }}">
+                            <label class="form-check-label">
+                                {{ opt }}. {{ question[('option_' + opt.lower())] }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="feedback-area mt-3" style="display: none;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <button id="submit-quiz" class="btn btn-success btn-lg">Submit All Answers</button>
+    </div>
+</div>
+
+<script>
+// Track answers and provide immediate feedback
+document.querySelectorAll('input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const questionCard = this.closest('.card');
+        const qid = this.dataset.qid;
+        const selected = this.value;
+        
+        // Submit answer via AJAX
+        fetch('/student/submit-answer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                question_id: qid,
+                selected_option: selected,
+                session_id: '{{ session_id }}'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const feedbackArea = questionCard.querySelector('.feedback-area');
+            if (data.correct) {
+                feedbackArea.innerHTML = `
+                    <div class="alert alert-success">
+                        Correct! ${data.explanation}
+                    </div>
+                `;
+            } else {
+                feedbackArea.innerHTML = `
+                    <div class="alert alert-danger">
+                        Incorrect. Correct answer is ${data.correct_answer}.
+                        <br>${data.explanation}
+                    </div>
+                `;
+            }
+            feedbackArea.style.display = 'block';
+            questionCard.querySelectorAll('input').forEach(i => i.disabled = true);
+        });
+    });
+});
+
+document.getElementById('submit-quiz').addEventListener('click', function() {
+    fetch('/student/complete-quiz/{{ session_id }}', {method: 'POST'})
+    .then(() => {
+        window.location.href = '/student/performance/{{ session_id }}';
+    });
+});
+</script>
+{% endblock %}

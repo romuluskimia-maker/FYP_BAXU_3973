@@ -1,0 +1,24 @@
+{
+  "students": {
+    "2024001": {
+      "password": "student123",
+      "name": "John Doe",
+      "grade_level": 10,
+      "created_at": "2025-01-15"
+    },
+    "2024002": {
+      "password": "student123",
+      "name": "Jane Smith",
+      "grade_level": 11,
+      "created_at": "2025-01-16"
+    }
+  },
+  "teachers": {
+    "teacher@school.edu": {
+      "password": "teacher123",
+      "name": "Prof. Smith",
+      "department": "cs",
+      "created_at": "2025-01-10"
+    }
+  }
+}

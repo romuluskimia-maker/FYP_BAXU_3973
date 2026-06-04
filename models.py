@@ -55,11 +55,11 @@ class StudentAnswer(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     question_id = db.Column(db.String(36), db.ForeignKey('questions.id'), nullable=False)
+    session_id = db.Column(db.String(36), db.ForeignKey('student_quiz_sessions.id'), nullable=True)
     selected_option = db.Column(db.String(1), nullable=False)
     is_correct = db.Column(db.Boolean, nullable=False)
     answered_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # For evaluation tracking
     points_earned = db.Column(db.Integer, default=0)
     points_possible = db.Column(db.Integer, default=1)
 

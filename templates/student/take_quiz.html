@@ -76,9 +76,18 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
 });
 
 document.getElementById('submit-quiz').addEventListener('click', function() {
-    fetch('/student/complete-quiz/{{ session_id }}', {method: 'POST'})
-    .then(() => {
+    this.disabled = true;
+    this.textContent = 'Submitting...';
+
+    fetch('/student/complete-quiz/{{ session_id }}', { method: 'POST' })
+    .then(response => {
+        if (!response.ok) throw new Error('Server error: ' + response.status);
         window.location.href = '/student/performance/{{ session_id }}';
+    })
+    .catch(err => {
+        alert('Submission failed: ' + err.message);
+        this.disabled = false;
+        this.textContent = 'Submit All Answers';
     });
 });
 </script>

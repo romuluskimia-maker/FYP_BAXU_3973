@@ -23,7 +23,7 @@ if platform.system() == "Windows":
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     
     # Poppler path for PDF processing (from your notebook)
-    path_to_poppler_exe = Path(r"C:\poppler-25.12.0\Library\bin")
+    path_to_poppler_exe = Path(r"C:\Poppler\poppler-26.02.0\Library\bin")
     
     # Check if poppler exists
     if not path_to_poppler_exe.exists():

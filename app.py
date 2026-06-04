@@ -287,9 +287,12 @@ def view_student_feedback():
     all_feedback = Feedback.query.all()
     
     # Calculate statistics
+    quality_feedback = [f for f in all_feedback if f.question_quality]
+    difficulty_feedback = [f for f in all_feedback if f.difficulty_rating]
+
     avg_rating = sum(f.rating for f in all_feedback) / len(all_feedback) if all_feedback else 0
-    avg_quality = sum(f.question_quality for f in all_feedback if f.question_quality) / len(all_feedback) if all_feedback else 0
-    avg_difficulty = sum(f.difficulty_rating for f in all_feedback if f.difficulty_rating) / len(all_feedback) if all_feedback else 0
+    avg_quality = sum(f.question_quality for f in quality_feedback) / len(quality_feedback) if quality_feedback else 0
+    avg_difficulty = sum(f.difficulty_rating for f in difficulty_feedback) / len(difficulty_feedback) if difficulty_feedback else 0
     
     return render_template('teacher/view_feedback.html',
                          feedbacks=all_feedback,
@@ -387,6 +390,7 @@ def submit_answer():
     answer = StudentAnswer(
         student_id=current_user.id,
         question_id=question_id,
+        session_id=session_id,
         selected_option=selected_option,
         is_correct=is_correct,
         points_earned=1 if is_correct else 0,
@@ -419,15 +423,13 @@ def submit_answer():
 @login_required
 def complete_quiz(session_id):
     if current_user.role != 'student':
-        flash('Access denied', 'danger')
-        return redirect(url_for('index'))
-    
+        return jsonify({'error': 'Access denied'}), 403
+
     session_obj = StudentQuizSession.query.get_or_404(session_id)
     session_obj.completed_at = datetime.utcnow()
     db.session.commit()
-    
-    flash('Quiz completed! View your performance below.', 'success')
-    return redirect(url_for('view_performance', session_id=session_id))
+
+    return jsonify({'success': True})  # JS handles the redirect
 
 # Step 4: Show score and explanation for every question and answer
 @app.route('/student/performance/<session_id>')
@@ -436,13 +438,19 @@ def view_performance(session_id):
     if current_user.role != 'student':
         flash('Access denied', 'danger')
         return redirect(url_for('index'))
-    
+
     session_obj = StudentQuizSession.query.get_or_404(session_id)
+
+    # Guard: redirect if quiz was never completed
+    if not session_obj.completed_at:
+        flash('Please complete the quiz before viewing results.', 'warning')
+        return redirect(url_for('take_quiz'))
     
     # Get all answers from this session
     # Note: Since we don't link answers directly to sessions yet, get by student and time
-    answers = StudentAnswer.query.filter_by(student_id=current_user.id).order_by(StudentAnswer.answered_at.desc()).limit(
-        session_obj.total_possible
+    answers = StudentAnswer.query.filter_by(
+        student_id=current_user.id,
+        session_id=session_id
     ).all()
     
     # Build detailed results

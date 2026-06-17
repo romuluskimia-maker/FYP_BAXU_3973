@@ -54,7 +54,7 @@ def check_ollama_connection() -> bool:
         return False
     return False
 
-def query_llama(prompt: str, temperature: float = 0.7, max_tokens: int = 2000) -> str:
+def query_llama(prompt: str, temperature: float = 0.7, max_tokens: int = 4000) -> str:
     """
     Send a prompt to Llama 3.2 and get response
     
@@ -86,7 +86,7 @@ def query_llama(prompt: str, temperature: float = 0.7, max_tokens: int = 2000) -
         response = requests.post(
             OLLAMA_API_URL,
             json=payload,
-            timeout=120  # 2 minute timeout for generation
+            timeout=300  # 5 minute timeout for generation
         )
         
         if response.status_code != 200:
@@ -105,6 +105,9 @@ def query_llama(prompt: str, temperature: float = 0.7, max_tokens: int = 2000) -
         raise
 
 def generate_mcq_with_distractors(text: str, num_questions: int = 5) -> List[Dict[str, Any]]:
+    # Truncate text to prevent overwhelming the model
+    if len(text) > 3000:
+        text = text[:3000] + "\n[Text truncated for processing]"
     """
     Generate multiple choice questions with plausible distractors
     
@@ -149,7 +152,7 @@ Generate {num_questions} thoughtful, challenging questions. Remember: ONLY outpu
     
     try:
         # Get response from Llama
-        raw_response = query_llama(prompt, temperature=0.7)
+        raw_response = query_llama(prompt, temperature=0.7, max_tokens=4000)
         
         # Extract JSON from response (in case LLM adds extra text)
         json_match = re.search(r'\[.*\]', raw_response, re.DOTALL)

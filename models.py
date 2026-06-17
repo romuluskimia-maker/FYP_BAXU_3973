@@ -25,6 +25,7 @@ class Document(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     teacher_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     filename = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(200), nullable=True)  # Teacher-given quiz title
     extracted_text = db.Column(db.Text, nullable=False)
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(50), default='pending')  # pending, processing, completed
@@ -68,6 +69,7 @@ class StudentQuizSession(db.Model):
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    doc_id = db.Column(db.String(36), db.ForeignKey('documents.id'), nullable=True)  # Which quiz this session is for
     started_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime)
     total_score = db.Column(db.Float, default=0)

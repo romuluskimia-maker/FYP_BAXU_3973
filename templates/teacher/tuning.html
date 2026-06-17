@@ -97,7 +97,6 @@
                                     <option value="pending" {% if question.teacher_feedback_status == 'pending' %}selected{% endif %}>Pending Review</option>
                                     <option value="approved" {% if question.teacher_feedback_status == 'approved' %}selected{% endif %}>Approve & Publish</option>
                                     <option value="rejected" {% if question.teacher_feedback_status == 'rejected' %}selected{% endif %}>Reject (Needs Regeneration)</option>
-                                    <option value="modified" {% if question.teacher_feedback_status == 'modified' %}selected{% endif %}>Modified (Changes Made)</option>
                                 </select>
                             </div>
                             
@@ -162,15 +161,11 @@
         </div>
         
         <!-- Form Actions -->
+<!-- Form Actions -->
         <div class="row mt-4 mb-5">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <button type="submit" name="action" value="save_changes" class="btn btn-primary btn-lg w-100">
-                    <i class="fas fa-save"></i> Save All Changes
-                </button>
-            </div>
-            <div class="col-md-6">
-                <button type="submit" name="action" value="approve_all" class="btn btn-success btn-lg w-100">
-                    <i class="fas fa-check-double"></i> Approve All & Publish
+                    <i class="fas fa-save"></i> Save Changes And Continue
                 </button>
             </div>
         </div>

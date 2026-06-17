@@ -147,6 +147,7 @@ def upload_notes():
                     doc = Document(
                         teacher_id=current_user.id,
                         filename=filename,
+                        title=request.form.get('title', filename),  # ← ADD THIS
                         extracted_text=cleaned_text,
                         status='processing'
                     )
@@ -163,7 +164,12 @@ def upload_notes():
                 flash(f'OCR failed: {str(e)}', 'danger')
                 return redirect(request.url)
     
-    return render_template('teacher/upload_notes.html')
+    documents = Document.query.filter_by(teacher_id=current_user.id).order_by(Document.uploaded_at.desc()).all()
+    pending_questions = Question.query.filter_by(teacher_feedback_status='pending').count()
+
+    return render_template('teacher/upload_notes.html',
+                         documents=documents,
+                         pending_questions=pending_questions)
 
 # Step 2: Machine generates questions with distractors
 @app.route('/teacher/generate/<doc_id>')
@@ -204,8 +210,10 @@ def generate_questions_from_notes(doc_id):
         return redirect(url_for('review_generated_questions', doc_id=doc.id))
         
     except Exception as e:
-        flash(f'Generation failed: {str(e)}', 'danger')
-        return redirect(url_for('teacher_dashboard'))
+            doc.status = 'failed'
+            db.session.commit()
+            flash(f'Generation failed: {str(e)}', 'danger')
+            return redirect(url_for('teacher_dashboard'))
 
 # Step 3: Show generated questions to get teacher's feedback
 @app.route('/teacher/review/<doc_id>')
@@ -275,6 +283,29 @@ def tune_questions():
                          pending_questions=pending_questions,
                          all_questions=all_questions)
 
+# Additional route to delete files
+@app.route('/teacher/delete-document/<doc_id>', methods=['POST'])
+@login_required
+def delete_document(doc_id):
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    doc = Document.query.get_or_404(doc_id)
+
+    # Delete associated questions first
+    Question.query.filter_by(document_id=doc_id).delete()
+
+    # Delete the actual file from disk
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], doc.filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
+    db.session.delete(doc)
+    db.session.commit()
+
+    flash(f'Document "{doc.title or doc.filename}" deleted successfully.', 'success')
+    return redirect(url_for('upload_notes'))
+
 # Step 5: Save questions in server (already done when approved)
 # Step 6: Gather feedback from students
 @app.route('/teacher/view-feedback')
@@ -308,55 +339,96 @@ def student_dashboard():
     if current_user.role != 'student':
         flash('Access denied', 'danger')
         return redirect(url_for('index'))
-    
-    # Get available questions (published by teacher)
-    available_questions = Question.query.filter_by(is_published=True).all()
-    
-    # Check if student has already taken the quiz
-    existing_session = StudentQuizSession.query.filter_by(
-        student_id=current_user.id,
-        completed_at=None
-    ).first()
-    
-    # Get previous attempts
+
+    # Get all documents that have at least one published question
+    documents_with_questions = Document.query.join(Question).filter(
+        Question.is_published == True
+    ).distinct().all()
+
+    # For each document, check if student has completed it
+    available_quizzes = []
+    for doc in documents_with_questions:
+        question_count = Question.query.filter_by(
+            document_id=doc.id,
+            is_published=True
+        ).count()
+
+        completed_session = StudentQuizSession.query.filter_by(
+            student_id=current_user.id,
+            doc_id=doc.id
+        ).filter(StudentQuizSession.completed_at.isnot(None)).first()
+
+        in_progress_session = StudentQuizSession.query.filter_by(
+            student_id=current_user.id,
+            doc_id=doc.id,
+            completed_at=None
+        ).first()
+
+        available_quizzes.append({
+            'doc': doc,
+            'question_count': question_count,
+            'completed_session': completed_session,
+            'in_progress_session': in_progress_session
+        })
+
+    # Completed sessions for performance history
     completed_sessions = StudentQuizSession.query.filter_by(
         student_id=current_user.id
     ).filter(StudentQuizSession.completed_at.isnot(None)).all()
-    
+
     return render_template('student/dashboard.html',
-                         available_questions=available_questions,
-                         existing_session=existing_session,
+                         available_quizzes=available_quizzes,
                          completed_sessions=completed_sessions)
 
 # Step 1: Get questions made by teachers
-@app.route('/student/take-quiz')
+@app.route('/student/take-quiz/<doc_id>')
 @login_required
-def take_quiz():
+def take_quiz(doc_id):
     if current_user.role != 'student':
         flash('Access denied', 'danger')
         return redirect(url_for('index'))
-    
-    # Get published questions
-    questions = Question.query.filter_by(is_published=True).all()
-    
+
+    doc = Document.query.get_or_404(doc_id)
+
+    # Get only this document's published questions
+    questions = Question.query.filter_by(
+        document_id=doc_id,
+        is_published=True
+    ).all()
+
     if not questions:
-        flash('No questions available yet. Please check back later.', 'warning')
+        flash('No questions available for this quiz yet.', 'warning')
         return redirect(url_for('student_dashboard'))
-    
-    # Create or get existing session
+
+    # Check if student already completed this specific quiz
+    completed = StudentQuizSession.query.filter_by(
+        student_id=current_user.id,
+        doc_id=doc_id
+    ).filter(StudentQuizSession.completed_at.isnot(None)).first()
+
+    if completed:
+        flash('You have already completed this quiz.', 'info')
+        return redirect(url_for('view_performance', session_id=completed.id))
+
+    # Get or create session for this specific doc
     session_obj = StudentQuizSession.query.filter_by(
         student_id=current_user.id,
+        doc_id=doc_id,
         completed_at=None
     ).first()
-    
+
     if not session_obj:
-        session_obj = StudentQuizSession(student_id=current_user.id)
+        session_obj = StudentQuizSession(
+            student_id=current_user.id,
+            doc_id=doc_id
+        )
         db.session.add(session_obj)
         db.session.commit()
-    
+
     return render_template('student/take_quiz.html',
                          questions=questions,
-                         session_id=session_obj.id)
+                         session_id=session_obj.id,
+                         doc=doc)
 
 # Step 2: Student starts answering questions (handled via AJAX)
 @app.route('/student/submit-answer', methods=['POST'])
@@ -531,6 +603,22 @@ def api_update_question(qid):
         question.is_published = True
         question.approved_at = datetime.utcnow()
     
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/questions/<qid>', methods=['DELETE'])
+@login_required
+def api_delete_question(qid):
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    question = Question.query.get_or_404(qid)
+    
+    # Don't allow deleting published questions
+    if question.is_published:
+        return jsonify({'error': 'Cannot delete a published question'}), 400
+    
+    db.session.delete(question)
     db.session.commit()
     return jsonify({'success': True})
 

@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-8">
-            <h1>Student Feedback Dashboard </h1>
+            <h1>Student Feedback Dashboard</h1>
             <p class="lead">View what students think about the questions and learning experience.</p>
         </div>
         <div class="col-md-4 text-end">
@@ -15,4 +15,118 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mt
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Total Responses</h6>
+                    <h2 class="display-4">{{ feedbacks|length }}</h2>
+                    <p class="card-text">Students responded</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Avg. Overall Rating</h6>
+                    <h2 class="display-4">{{ avg_rating|round(1) }}</h2>
+                    <p class="card-text">Out of 5</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Avg. Question Quality</h6>
+                    <h2 class="display-4">{{ avg_quality|round(1) }}</h2>
+                    <p class="card-text">Out of 5</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Avg. Difficulty</h6>
+                    <h2 class="display-4">{{ avg_difficulty|round(1) }}</h2>
+                    <p class="card-text">Out of 5</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Table -->
+    <div class="card shadow-sm mt-5">
+        <div class="card-header">
+            <h5 class="mb-0">All Student Feedback</h5>
+        </div>
+        <div class="card-body">
+            {% if feedbacks %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Submitted</th>
+                                <th>Overall Rating</th>
+                                <th>Question Quality</th>
+                                <th>Difficulty</th>
+                                <th>Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in feedbacks %}
+                            <tr>
+                                <td>{{ feedback.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% for i in range(1, 6) %}
+                                        <i class="fas fa-star {% if i <= feedback.rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                    <small class="text-muted ms-1">({{ feedback.rating }}/5)</small>
+                                </td>
+                                <td>
+                                    {% if feedback.question_quality %}
+                                        {% for i in range(1, 6) %}
+                                            <i class="fas fa-star {% if i <= feedback.question_quality %}text-info{% else %}text-muted{% endif %}"></i>
+                                        {% endfor %}
+                                        <small class="text-muted ms-1">({{ feedback.question_quality }}/5)</small>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if feedback.difficulty_rating %}
+                                        <span class="badge 
+                                            {% if feedback.difficulty_rating <= 2 %}bg-success
+                                            {% elif feedback.difficulty_rating == 3 %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ feedback.difficulty_rating }}/5
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if feedback.comment %}
+                                        <span title="{{ feedback.comment }}">
+                                            {{ feedback.comment[:80] }}{% if feedback.comment|length > 80 %}...{% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">No comment left</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p class="mb-0">No feedback received yet. Students will submit feedback after completing quizzes.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mb-5"></div>
+</div>
+{% endblock %}

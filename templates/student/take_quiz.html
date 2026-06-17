@@ -2,7 +2,8 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Answer Questions</h2>
+    <h2>{{ doc.title or doc.filename }}</h2>
+    <p class="text-muted">{{ questions|length }} questions — answer each one and click Next when done.</p>
     <div id="quiz-container">
         <div id="questions-area">
             {% for question in questions %}
@@ -30,7 +31,7 @@
             {% endfor %}
         </div>
         
-        <button id="submit-quiz" class="btn btn-success btn-lg">Submit All Answers</button>
+        <button id="submit-quiz" class="btn btn-success btn-lg">Finish Quiz</button>
     </div>
 </div>
 
